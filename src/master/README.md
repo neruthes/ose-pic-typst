@@ -4,6 +4,7 @@ This package provides per-page foreground and background management.
 Examples:
 
 ```typst
+#import "@preview/ose-pic:0.1.0": *
 // Setup
 #set page(
     foreground: osepic_default_foreground_handler(),
@@ -18,8 +19,14 @@ Examples:
         // My other stuff...
         #context osepic_default_background_handler()],
 )
+// Or even easier...
+#show: ose-pic-init
 
-// Invocation
-#add_to_shipout_bg(place(center + horizon, text(20mm, fill: red.transparentize(80%))[BACKGROUND]))
-#add_to_shipout_fg(place(top + right, dx: -1cm, dy: 1cm, text(10mm, fill: blue.transparentize(50%))[FOREGROUND]))
+// Invocation...
+#AddToShipoutBG(place(center + horizon, text(20mm, fill: red.transparentize(80%))[BACKGROUND]))
+#AddToShipoutFG(place(top + right, dx: -1cm, dy: 1cm, text(10mm, fill: blue.transparentize(50%))[FOREGROUND]))
+
+// And the every-page version...
+#AddToShipoutBGAll(place(top + left, box(inset: 15mm, [Every-page BG])))
+#AddToShipoutFGAll(place(bottom + right, box(inset: 15mm, [Every-page FG])))
 ```
