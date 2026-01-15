@@ -22,9 +22,9 @@ case "$1" in
         [[ -d ../typst-packages-universe ]] &&
         [[ -d "$universe_dir_pref" ]] &&
         # [[ ! -d "$universe_dir" ]] &&
-        rsync --dry-run -av ./src/master/ --exclude components "$universe_dir/" &&
+        rsync --dry-run -av ./src/master/ --exclude ose-pic.pdf "$universe_dir/" &&
         echo "Seems that we can do this!" &&
-        echo '    ' rsync -av ./src/master/ --exclude components "$universe_dir/"
+        echo '    ' rsync -av ./src/master/ --exclude ose-pic.pdf "$universe_dir/"
 
         ;;
     src/ )
