@@ -1,7 +1,7 @@
 This package provides per-page foreground and background management.
 
 
-Examples:
+Setup:
 
 ```typst
 #import "@preview/ose-pic:0.1.0": *
@@ -21,7 +21,11 @@ Examples:
 )
 // Or even easier...
 #show: ose-pic-init
+```
 
+Use:
+
+```typst
 // Invocation...
 #AddToShipoutBG(place(center + horizon, text(20mm, fill: red.transparentize(80%))[BACKGROUND]))
 #AddToShipoutFG(place(top + right, dx: -1cm, dy: 1cm, text(10mm, fill: blue.transparentize(50%))[FOREGROUND]))
