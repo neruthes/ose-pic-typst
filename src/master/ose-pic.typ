@@ -46,10 +46,8 @@
 }
 
 // Current page
-#let add_to_shipout_bg(content) = _add_to_reg(__global_background_registry, content)
-#let add_to_shipout_fg(content) = _add_to_reg(__global_foreground_registry, content)
-#let AddToShipoutBG(content) = add_to_shipout_bg(content)
-#let AddToShipoutFG(content) = add_to_shipout_fg(content)
+#let AddToShipoutBG(content) = _add_to_reg(__global_background_registry, content)
+#let AddToShipoutFG(content) = _add_to_reg(__global_foreground_registry, content)
 
 // Every page
 #let AddToShipoutBGAll(content) = _add_to_reg(__global_background_registryAll, content)

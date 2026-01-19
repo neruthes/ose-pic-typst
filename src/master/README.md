@@ -4,7 +4,7 @@ This package provides per-page foreground and background management.
 Setup:
 
 ```typst
-#import "@preview/ose-pic:0.1.0": *
+#import "@preview/ose-pic:0.1.1": *
 // Setup
 #set page(
     foreground: osepic_default_foreground_handler(),
