@@ -1,25 +1,29 @@
-#let __global_foreground_registry = state("__global_foreground_registry", (:))
-#let __global_background_registry = state("__global_background_registry", (:))
-#let __global_foreground_registryAll = state("__global_foreground_registryAll", (:))
-#let __global_background_registryAll = state("__global_background_registryAll", (:))
+// Single registry for all shipout items
+#let __osepic_registry = state("__osepic_registry", ())
 
 // --- The Factory ---
+// Now iterates through a single list and filters based on logic
 #let ___common_bgfg_handler_factory(is_background: true) = {
   return () => {
     context {
-      let reg_state = if is_background { __global_background_registry } else { __global_foreground_registry }
-      let reg_state_all = if is_background { __global_background_registryAll } else { __global_foreground_registryAll }
-      let p = str(counter(page).get().first())
-
-      // Use .final() to ensure we see updates made later in the page flow
-      let reg = reg_state.final()
-      let reg_all = reg_state_all.final()
-
-      if reg.keys().contains(p) {
-        reg.at(p).join()
-      }
-      if reg_all.keys().contains("0") {
-        reg_all.at("0").join()
+      let current_page = counter(page).get().first()
+      // Use .final() to ensure items added anywhere on the page are captured
+      let items = __osepic_registry.final()
+      
+      for item in items {
+        // Condition 1: Match background/foreground layer
+        let layer_match = (item.is_background == is_background)
+        
+        // Condition 2: Check if we are on or after the starting page
+        let is_active_page = if item.is_single_page_only {
+          current_page == item.start_page
+        } else {
+          current_page >= item.start_page
+        }
+        
+        if layer_match and is_active_page {
+          item.entry_content
+        }
       }
     }
   }
@@ -28,32 +32,31 @@
 #let osepic_default_foreground_handler = ___common_bgfg_handler_factory(is_background: false)
 #let osepic_default_background_handler = ___common_bgfg_handler_factory(is_background: true)
 
-// --- The Registry Helpers ---
-// Add to registry, very simple logic
-#let _add_to_reg(reg_state, content) = context {
-  let p = str(counter(page).get().first())
-  // But, if we add to the every-page registry, treat p as 0
-  if (reg_state == __global_foreground_registryAll or reg_state == __global_background_registryAll) {
-    p = "0"
-  }
-  reg_state.update(reg => {
-    let reg = if type(reg) != dictionary { (:) } else { reg }
-    let items = reg.at(p, default: ())
-    items.push(content)
-    reg.insert(p, items)
-    reg
+// --- Internal Registry Helper ---
+#let _add_to_osepic(content, is_bg, is_single) = context {
+  let p = counter(page).get().first()
+  __osepic_registry.update(my_arr => {
+    my_arr.push((
+      is_background: is_bg,
+      start_page: p,
+      is_single_page_only: is_single,
+      entry_content: content,
+    ))
+    my_arr
   })
 }
 
-// Current page
-#let AddToShipoutBG(content) = _add_to_reg(__global_background_registry, content)
-#let AddToShipoutFG(content) = _add_to_reg(__global_foreground_registry, content)
+// --- Public API ---
 
-// Every page
-#let AddToShipoutBGAll(content) = _add_to_reg(__global_background_registryAll, content)
-#let AddToShipoutFGAll(content) = _add_to_reg(__global_foreground_registryAll, content)
+// Add to Current Page Only
+#let AddToShipoutBG(content) = _add_to_osepic(content, true, true)
+#let AddToShipoutFG(content) = _add_to_osepic(content, false, true)
 
+// Add to Current Page and ALL Subsequent Pages (Like eso-pic's * version)
+#let AddToShipoutBGAll(content) = _add_to_osepic(content, true, false)
+#let AddToShipoutFGAll(content) = _add_to_osepic(content, false, false)
 
+// --- Initialization ---
 #let ose-pic-init(doc) = {
   set page(
     foreground: osepic_default_foreground_handler(),
@@ -63,45 +66,45 @@
 }
 
 
-// --- Demo ---
-#let ___demo_doc = {
-  show: ose-pic-init
-  set page(
-    margin: (top: 30mm, bottom: 30mm, left: 30mm, right: 95mm),
-  )
 
-  // Function to add side column comment
-  let add_comment(content) = context {
-    let y_offset = here().position().values().at(2)
-    AddToShipoutFG(place(top + left, dx: 210mm - 95mm + 9mm, dy: y_offset, box(
-      width: 95mm - 9mm - 20mm,
-      height: auto,
-      text(size: 9pt, fill: blue, content),
-    )))
-  }
-  set text(size: 12pt, font: ("TeX Gyre Heros", "Noto Sans CJK SC"))
-  set par(justify: true)
-  AddToShipoutBGAll(place(center + horizon, dy: 51mm, text(22mm, fill: green.transparentize(66%))[BG ALL PAGES]))
+#let __demo_doc = [
+  #show: ose-pic-init
+  #AddToShipoutFGAll(place(center + bottom, box(width: 90mm, height: 30mm, fill: gray.lighten(75%))))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #AddToShipoutFG(place(center + horizon, box(width: 80mm, height: 70mm, fill: gray.lighten(55%))))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #AddToShipoutBGAll(place(top + right, box(width: 80mm, height: 70mm, fill: blue.lighten(55%))))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  
+  #AddToShipoutBG(place(top + left, box(width: 80mm, height: 70mm, fill: red.lighten(55%))))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+  #par(lorem(155))
+]
 
-  for itr in range(1, 34) {
-    // Test Background (Red)
-    AddToShipoutBG(place(center + horizon, text(20mm, fill: red.transparentize(70%))[BG #itr]))
-
-    // Test Foreground (Blue)
-    AddToShipoutFG(place(top + right, dx: -1cm, dy: 1cm, text(10mm, fill: blue.transparentize(50%))[FG #itr]))
-
-    [= Section #itr ;;
-
-      #par(lorem(150))
-      #par(lorem(250))
-      #add_comment([Hello world. This is a small piece of text.])
-      #par(lorem(144))
-      #par(lorem(144))
-      #par(lorem(144))
-    ]
-    pagebreak(weak: true)
-  }
-
-}
-
-#___demo_doc
+#__demo_doc

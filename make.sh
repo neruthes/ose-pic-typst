@@ -43,7 +43,7 @@ case "$1" in
         VER="$(tomlq -r .package.version src/master/typst.toml)"
         rsync -auv --delete --mkpath src/master/ "$HOME"/.local/share/typst/packages/local/ose-pic/"$VER"
         ;;
-    fast )
+    fast | f )
         ./make.sh src/
         ./make.sh install_local
         ;;
