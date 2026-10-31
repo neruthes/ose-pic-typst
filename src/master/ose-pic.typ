@@ -6,7 +6,7 @@
 #let ___common_bgfg_handler_factory(is_background: true) = {
   return () => {
     context {
-      let current_page = counter(page).get().first()
+      let current_page = here().page()
       // Use .final() to ensure items added anywhere on the page are captured
       let items = __osepic_registry.final()
       
@@ -34,7 +34,7 @@
 
 // --- Internal Registry Helper ---
 #let _add_to_osepic(content, is_bg, is_single) = context {
-  let p = counter(page).get().first()
+  let p = here().page()
   __osepic_registry.update(my_arr => {
     my_arr.push((
       is_background: is_bg,
